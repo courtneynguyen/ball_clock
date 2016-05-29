@@ -1,6 +1,15 @@
-var input = 27;
+var input = 30;
 var masterQueue = [];
-var FIXED_BALL_POSITION = 16;
+var FIXED_BALL_POSITION = 17;
+
+var areStatesEqual = function(initial, current){
+  for(var x = 0; x < initial.length; x++){
+    if(initial[x].position !== current[x].position){
+      return false;
+    }
+  }
+  return true;
+};
 
 var Ball = function(id){
   this.id = id;
@@ -33,13 +42,18 @@ Queue.prototype.addBall = function (ball) {
     this.flush();
   }
 };
-Queue.prototype.isFull = function () {
+Queue.prototype.isTipping = function () {
   return this.size === this.maxSize;
 };
 Queue.prototype.flush = function () {
   flushToQueue(this.queueToFlowTo, this.balls);
   this.balls = [];
   this.size = 0;
+};
+
+Queue.prototype.addBallFromMasterQueue = function () {
+  var shiftedBall = masterQueue.shift();
+  this.addBall(shiftedBall);
 };
 
 var BallClock = function(input){
@@ -58,47 +72,41 @@ var BallClock = function(input){
   fixedBall.setPosition(FIXED_BALL_POSITION);
   this.hourQueue.addBall(fixedBall);
 
-  var queues = [this.minuteQueue, this.fiveMinuteQueue, this.hourQueue, masterQueue];
+  var queues = [this.minuteQueue, this.fiveMinuteQueue, this.hourQueue];
 
   this.getFirstQueueWithSpace = function(){
     for(var x = 0; x < queues.length; x++){
-      if(queues[x].isFull() === false){
+      if(queues[x].isTipping() === false){
         return queues[x];
       }
       else {
-        if(x === queues.length-1){
-          return queues[x];
-        }
-        else {
-          queues[x].flush();
-          return queues[x];
-        }
+        queues[x].flush();
+        return queues[x];
       }
     }
     return null;
   };
 
-  this.saveInitialState = function(){
+  this.getState = function(){
     var minuteBalls = this.minuteQueue.balls;
     var fiveMinuteBalls = this.fiveMinuteQueue.balls;
     var hourBalls = this.hourQueue.balls;
     var masterQueueBalls = masterQueue;
     var containerOfBalls = hourBalls.concat(masterQueueBalls);
-    this.initialBallState = containerOfBalls.concat(minuteBalls);
-    containerOfBalls = this.initialBallState;
-    this.initialBallState = containerOfBalls.concat(fiveMinuteBalls);
+    var ballState = containerOfBalls.concat(minuteBalls);
+    containerOfBalls = ballState;
+    ballState = containerOfBalls.concat(fiveMinuteBalls);
+    return ballState;
   };
 
   for(var x = 1; x < input+1; x++){
     var queue = this.getFirstQueueWithSpace();
     if(x !== FIXED_BALL_POSITION){
-      var ball = new Ball(x);
-      ball.setPosition(x);
-      queue.addBall(ball);
+      queue.addBallFromMasterQueue();
     }
   }
 
-  this.saveInitialState();
+  this.initialBallState = this.getState();
 };
 
 BallClock.prototype.printCurrentTime = function(){
@@ -113,31 +121,45 @@ BallClock.prototype.printCurrentTime = function(){
     minutes = '0' + minutes;
   }
   console.log(this.hourQueue.printTime() +':' + (minutes));
+  // console.log(this.daysPassed() + ' days');
+  this.hourQueue.time = 0;
+  this.daysUntilInitialPosition();
 };
 
 BallClock.prototype.daysUntilInitialPosition = function(){
+  var statesAreEqual = false;
+  while(statesAreEqual === false){
 
+    var currentState = this.cycle();
+    statesAreEqual = areStatesEqual(this.initialBallState, currentState);
+  }
+  console.log(input + ' balls cycle after ' + this.daysPassed() + ' days');
 };
 
 BallClock.prototype.daysPassed = function () {
-  var days = this.hourQueue.time / 24;
+  var days = Math.floor(this.hourQueue.time / 24);
   return days;
 };
 
+BallClock.prototype.cycle = function () {
+  this.minuteQueue.addBallFromMasterQueue();
+  return this.getState();
+};
+
 var MinuteQueue = function (config, queueToFlowTo) {
-    Queue.call(this, queueToFlowTo);
+  Queue.call(this, queueToFlowTo);
   this.maxSize = config;
 };
 
 var FiveMinuteQueue = function(config, queueToFlowTo) {
-    Queue.call(this, queueToFlowTo);
+  Queue.call(this, queueToFlowTo);
   this.maxSize = config;
 };
 
 var HourQueue = function (config, queueToFlowTo) {
   Queue.call(this, queueToFlowTo);
   this.maxSize = config;
-  this.time = 1;
+  this.time = 0;
 };
 
 MinuteQueue.prototype = Object.create(Queue.prototype);
@@ -167,6 +189,9 @@ HourQueue.prototype.flush = function () {
 HourQueue.prototype.addBall = function (ball) {
   this.balls.push(ball);
   this.size = this.balls.length;
+  if(this.balls.length === this.maxSize){
+    this.flush();
+  }
   this.time += 1;
 };
 
