@@ -1,0 +1,30 @@
+{
+  "name": "ball_clock",
+  "version": "1.0.0",
+  "description": "My approach to the ball clock problem from the 1995 ACM Contest Finals sponsored by Microsoft. JavaScript.",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "script": "node ./index.js",
+    "webpack": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/courtneynguyen/ball_clock.git"
+  },
+  "keywords": [
+    "ball",
+    "clock",
+    "javascript",
+    "solution"
+  ],
+  "author": "Courtney Nguyen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/courtneynguyen/ball_clock/issues"
+  },
+  "homepage": "https://github.com/courtneynguyen/ball_clock#readme",
+  "devDependencies": {
+    "webpack": "^1.13.1"
+  }
+}

@@ -1,0 +1,4 @@
+dist
+*.un*
+*.*~
+node_modules
