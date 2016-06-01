@@ -1,4 +1,5 @@
 var Queue = require('./Queue');
+
 var MinuteQueue = function (config, queueToFlowTo, master) {
   Queue.call(this, queueToFlowTo, master);
   this.maxSize = config;

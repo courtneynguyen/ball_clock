@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/courtneynguyen/ball_clock#readme",
   "devDependencies": {
+    "babel-core": "^6.9.1",
     "webpack": "^1.13.1"
   }
 }
